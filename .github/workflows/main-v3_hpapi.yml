@@ -1,0 +1,232 @@
+# Docs for the Azure Web Apps Deploy action: https://github.com/Azure/webapps-deploy
+# More GitHub Actions for Azure: https://github.com/Azure/actions
+# More info on Python, GitHub Actions, and Azure App Service: https://aka.ms/python-webapps-actions
+
+name: Build and deploy Python app to Azure Web App - hpapi
+
+on:
+  push:
+    branches:
+      - main-v3
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python version
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Create and start virtual environment
+        run: |
+          python3.12 -m venv devvenv
+          source devvenv/bin/activate
+
+      - name: Install Microsoft ODBC driver for SQL Server (ODBC Driver 18)
+        run: |
+          curl https://packages.microsoft.com/keys/microsoft.asc | sudo apt-key add -
+          curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | sudo tee /etc/apt/sources.list.d/mssql-release.list
+          sudo apt-get update
+          sudo ACCEPT_EULA=Y apt-get install -y msodbcsql18
+
+      - name: Update Pip
+        run: python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: pip install -r **Redacted**/requirements.txt
+        
+      # Optional: Add step to run tests here (PyTest, Django test suites, etc.)
+      - name: Clockify Tests
+        run: "python ./**Redacted**/manage.py test Clockify.tests --keepdb"
+      
+      # Upload the Dockerfile and application code (or the release package)
+      - name: Zip all files in the repository
+        run: |
+          # Create a zip file of the entire repository
+          zip -r repo-files.zip . -x "*devvenv/*"
+
+      # Upload the zip file as an artifact
+      - name: Upload repo zip file as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: repo-files-artifact
+          path: repo-files.zip
+
+  deploy-cleanup:
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Log in to Azure
+        run: |
+          # # az login --username **Redacted**} --password **Redacted** --tenant **Redacted**
+
+      - name: Clean up existing Docker images
+        run: |
+          repositories=$(az acr repository list --name **Redacted** --output tsv)
+
+          if echo "$repositories" | grep -q "samples/**Redacted**"; then
+            az acr repository delete --name **Redacted** --repository samples/**Redacted** --yes
+          fi
+
+          if echo "$repositories" | grep -q "samples/**Redacted**cel"; then
+            az acr repository delete --name **Redacted** --repository samples/**Redacted** --yes
+          fi
+  deploy-django:
+    runs-on: ubuntu-latest
+    needs: [build, deploy-cleanup]
+    steps:
+      # Step 1: Log in to Azure
+      - name: Log in to Azure
+        run: |
+          # az login --username **Redacted**} --password **Redacted** --tenant **Redacted**
+      
+      - name: Install Docker Dependencies 
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+      
+      # Step 2: Clean up any existing images in ACR (Azure Container Registry)
+      - name: Download repo zip file
+        uses: actions/download-artifact@v4
+        with:
+          name: repo-files-artifact
+
+      - name: Unzip repo
+        run: unzip repo-files.zip
+
+      - name: Build and Push Django Image
+        run: |
+          docker-compose -f docker-compose.yml build web
+          docker tag **Redacted**:latest **Redacted**/samples/**Redacted**:latest
+          az acr login --name **Redacted**
+          docker push **Redacted**/samples/**Redacted**:latest
+         
+
+  deploy-celery:
+    runs-on: ubuntu-latest
+    needs: [build, deploy-cleanup]
+    steps:
+      # Step 1: Log in to Azure
+      - name: Log in to Azure
+        run: |
+          # az login --username **Redacted**} --password **Redacted** --tenant **Redacted**
+
+      - name: Download repo zip file
+        uses: actions/download-artifact@v4
+        with:
+          name: repo-files-artifact
+          
+      - name: Install Docker Dependencies 
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+      
+      # Step 2: Clean up any existing images in ACR (Azure Container Registry)
+      - name: Unzip repo
+        run: unzip repo-files.zip
+
+      - name: Build and Push Celery Image
+        run: |
+          docker-compose -f docker-compose.yml build celery
+          docker tag **Redacted**cel:latest **Redacted**/samples/**Redacted**cel:latest
+          az acr login --name **Redacted**
+          docker push **Redacted**/samples/**Redacted**cel:latest
+  
+  restart-djanogo:
+    runs-on: ubuntu-latest
+    needs: [deploy-django]
+    steps:
+
+      - name: Log in to Azure
+        run: |
+          # az login --username **Redacted**} --password **Redacted** --tenant **Redacted**
+
+      - name: Restart Azure Container Instances
+        run: |
+          az container restart --resource-group SQL --name **Redacted**
+      
+  restart-cel:
+    runs-on: ubuntu-latest
+    needs: [deploy-celery]
+    steps:
+
+      - name: Log in to Azure
+        run: |
+          # az login --username **Redacted**} --password **Redacted** --tenant **Redacted**
+
+      - name: Restart Azure Container Instances
+        run: |
+          az container restart --resource-group SQL --name **Redacted**cel
+
+  # deploy:
+  #   runs-on: ubuntu-latest
+  #   needs: build
+  #   steps:
+  #     # Download the artifact in the deploy job
+  #     - name: Download the repo zip file
+  #       uses: actions/download-artifact@v4
+  #       with:
+  #         name: repo-files-artifact
+
+  #   # Unzip the downloaded file to the current directory
+  #     - name: Unzip the downloaded file
+  #       run: |
+  #         unzip repo-files.zip
+        
+
+  #     - name: Install Docker Dependencies 
+  #       run: |
+  #         sudo curl -L "https://github.com/docker/compose/releases/download/1.29.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+  #         sudo chmod +x /usr/local/bin/docker-compose
+  #     # Step 2: Clean up any existing images in ACR (Azure Container Registry)
+  #     - name: Clean up existing Docker images
+  #       run:  |
+  #         # List repositories and check if the target repository exists
+  #         repositories=$(az acr repository list --name **Redacted** --output tsv)
+          
+  #         # Check if the repository exists
+  #         if echo "$repositories" | grep -q "samples/**Redacted**"; then
+  #           echo "Repository exists. Deleting..."
+  #           az acr repository delete --name **Redacted** --repository samples/**Redacted** --yes
+  #         else
+  #           echo "Repository does not exist. Skipping deletion."
+  #         fi
+
+  #         # List repositories and check if the target repository exists
+  #         repositories=$(az acr repository list --name **Redacted** --output tsv)
+          
+  #         # Check if the repository exists
+  #         if echo "$repositories" | grep -q "samples/**Redacted**cel"; then
+  #           echo "Repository exists. Deleting..."
+  #           az acr repository delete --name **Redacted** --repository samples/**Redacted**cel --yes
+  #         else
+  #           echo "Repository does not exist. Skipping deletion."
+  #         fi
+
+  #     - name: Build and Push Docker Images to ACR
+  #       run: |
+  #         # Build the Docker images for Django, Celery, and Redis
+  #         docker-compose -f docker-compose.yml build
+
+  #         # Tag and push Django image to ACR
+  #         docker tag **Redacted**:latest **Redacted**/samples/**Redacted**:latest
+  #         az acr login --name **Redacted**
+  #         docker push **Redacted**/samples/**Redacted**:latest
+
+  #         # Tag and push Celery image to ACR
+  #         docker tag **Redacted**cel:latest **Redacted**/samples/**Redacted**cel:latest
+  #         az acr login --name **Redacted**
+  #         docker push **Redacted**/samples/**Redacted**cel:latest
+
+  #     - name: Restart existing container instance to use the new images
+  #       run: |
+  #         # Restart the existing container instances to pick up the new images
+  #         az container restart --resource-group SQL --name **Redacted**
+  #         az container restart --resource-group SQL --name **Redacted**cel
+
+      

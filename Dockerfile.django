@@ -1,0 +1,36 @@
+# Use the official Python image as the base image
+FROM python:3.12-slim
+
+# Set environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set the working directory in the container
+WORKDIR /app/
+
+RUN apt-get update && \
+    apt-get install -y curl gnupg2 && \
+    curl https://packages.microsoft.com/keys/microsoft.asc | apt-key add - && \
+    curl https://packages.microsoft.com/config/ubuntu/20.04/prod.list | tee /etc/apt/sources.list.d/mssql-release.list && \
+    apt-get update && \
+    ACCEPT_EULA=Y apt-get install -y msodbcsql18
+
+RUN apt-get update && apt-get install -y libreoffice \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
+
+COPY HillPlainAPI/requirements.txt /app/
+RUN pip install --no-cache-dir -r requirements.txt
+ 
+# Copy the project files into the container
+COPY ./HillPlainAPI/ /app/
+
+
+
+
+# Expose the port on which the Django app runs
+EXPOSE 8000
+
+
+# Command to run the Django application
+CMD ["daphne", "-p", "8000", "-b", "0.0.0.0", "HillPlainAPI.asgi:application"]
+

@@ -1,0 +1,30 @@
+services:
+  # Django app service
+  web:
+    image: hillplainapi
+    build:
+      context: .
+      dockerfile: Dockerfile.django  # Path to your Django Dockerfile
+    volumes:
+      - ./HillPlainAPI:/app  # Mount your code to the container
+    # environment:
+    #   AZURE_STORAGE_CONNECTION_STRING: "**Redacted**"
+    #   AZURE_CONTAINER_NAME: "**Redacted**"  # Azure Blob container name
+    #   DJANGO_SETTINGS_MODULE: "HillPlainAPI.settings" 
+
+    ports:
+      - "8000:8000"  # Expose port 8000 to access Django app
+
+  # Celery worker service
+  celery:
+    image: hillplainapicel
+    build:
+      context: .
+      dockerfile: Dockerfile.celery  # Path to your Celery Dockerfile
+    user: appuser
+    volumes:
+      - ./HillPlainAPI:/app  # Mount your code to the container
+    # environment:
+    #   AZURE_STORAGE_CONNECTION_STRING: "**Redacted**"
+    #   AZURE_CONTAINER_NAME: "**Redacted**"  # Azure Blob container name
+    #   DJANGO_SETTINGS_MODULE: "HillPlainAPI.settings" 

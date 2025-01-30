@@ -1,0 +1,30 @@
+# Ignore the virtual environment directory
+.venv/
+.imac
+*.xlsx
+*.pdf
+
+# Other common items to ignore
+HillPlainAPI/celerybeat-schedule
+HillPlainAPI/supervisord.pid
+dump.rdb
+*.pyc
+__pycache__/
+.DS_Store
+.env
+*.log
+.idea/
+.vscode/
+node_modules/
+HpApiClockify/HpClockfiyApi/*.xlsx
+__pycache__/
+*.log
+*.xlsx
+*.pyc
+*.pyo
+.vscode/
+.venv/
+.gitattributes
+HpApiClockify/HpClockfiyApi/HpClockfiyApi/migrations/
+HpApiClockify/HpClockfiyApi/Reports
+HpApiClockify/HpClockfiyApi/HpClockfiyApi/settings.py
