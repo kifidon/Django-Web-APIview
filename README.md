@@ -1,6 +1,7 @@
 # Django Clocking Web App
 
 ## 🚧 Project Status: In Progress 🚧
+View only repo duplicated from main private repo as of Jan 30 2025
 
 ### Tasks to be Completed:
 - Add more comments and function descriptions for better readability
