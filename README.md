@@ -1,6 +1,6 @@
 # Django Clocking Web App
 
-## 🚧 Project Status: In Progress 🚧
+## 🚧 Project Status: View Only 🚧
 
 ---
 
