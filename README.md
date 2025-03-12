@@ -5,7 +5,9 @@
 ---
 
 ## Overview
-This Django-based clocking web application is designed for efficient employee time tracking and reporting. It leverages class-based views for frequent functions and utilizes `asyncio` and Celery for background and scheduled operations to enhance performance. This repo is view only and a `**Redacted**` placeholder has been put in place of sensitive information, thus the code must be modified before it can be run. The actual code repository is private.
+This Django-based clocking web application facilitates efficient employee time tracking and reporting. It employs class-based views for commonly used functionalities and integrates asyncio and Celery to optimize background processing and scheduled tasks.
+
+This repository is set to view-only, with sensitive information replaced by **Redacted** placeholders. As a result, modifications are required before executing the code. Additionally, the primary source code folder has been excluded for security and confidentiality purposes. Further details on the project’s implementation can be provided upon request, excluding sensitive information.
 
 ### Features:
 - **Class-Based Views:** Used for frequent functions to maintain clean and reusable code.
