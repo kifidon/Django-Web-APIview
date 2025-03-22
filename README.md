@@ -71,5 +71,5 @@ Further enhancements will focus on strengthening encryption, implementing role-b
 ---
 
 ## Author
-All code in this repository was written by **Timmy Ifidon** at **Hill Plain Construction LP** between the months of Jan 2024 and March 2025.
+All code in this repository was written by **Timmy Ifidon** at **Hill Plain Construction LP** between the months of Jan 2024 and March 2025. The project for which this repository refers to is managed by Hill Plain Construction.
 
